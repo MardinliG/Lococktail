@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-
+ 
 const ProductsPage = () => {
     const [products, setProducts] = useState([]);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
     const [error, setError] = useState('');
-
+ 
     // Charger les produits depuis l'API
     useEffect(() => {
         console.log('Chargement des produits depuis /api/products...');
@@ -26,18 +26,18 @@ const ProductsPage = () => {
                 console.error('Erreur lors du chargement des produits :', err);
             });
     }, []);
-
+ 
     // Ajouter un produit
     const handleAddProduct = async (e) => {
         e.preventDefault();
         setError('');
-
+ 
         if (!name || !description || !price) {
             console.error('Erreur : tous les champs sont obligatoires.');
             setError('Tous les champs sont obligatoires.');
             return;
         }
-
+ 
         try {
             console.log('Envoi des données au backend pour ajouter un produit...', {
                 name,
@@ -51,13 +51,13 @@ const ProductsPage = () => {
                 },
                 body: JSON.stringify({ name, description, price }),
             });
-
+ 
             console.log('Réponse après ajout du produit :', response);
-
+ 
             if (!response.ok) {
                 throw new Error(`Erreur HTTP : ${response.status}`);
             }
-
+ 
             const newProduct = await response.json();
             console.log('Nouveau produit ajouté :', newProduct);
             setProducts([...products, newProduct]); // Met à jour la liste des produits
@@ -69,11 +69,11 @@ const ProductsPage = () => {
             setError('Impossible d’ajouter le produit.');
         }
     };
-
+ 
     return (
         <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
             <h1>Gestion des Produits</h1>
-
+ 
             {/* Formulaire pour ajouter un produit */}
             <form onSubmit={handleAddProduct} style={{ marginBottom: '20px' }}>
                 <div style={{ marginBottom: '10px' }}>
@@ -114,7 +114,7 @@ const ProductsPage = () => {
                     Ajouter
                 </button>
             </form>
-
+ 
             {/* Liste des produits */}
             <h2>Liste des Produits</h2>
             {products.length > 0 ? (
@@ -131,5 +131,7 @@ const ProductsPage = () => {
         </div>
     );
 };
-
+ 
 export default ProductsPage;
+ 
+ 

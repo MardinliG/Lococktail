@@ -1,31 +1,63 @@
-const { Pool } = require('pg'); // Assurez-vous que `pg` est installé
-const fs = require('fs');
-const path = require('path');
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import pkg from 'pg';
+import dotenv from 'dotenv';
 
-// Configuration de la base de données
+dotenv.config(); // Charger les variables d'environnement
+
+const execAsync = promisify(exec); // Pour utiliser exec avec des Promises
+const { Pool } = pkg;
+
+// Variables d'environnement pour PostgreSQL
+const DB_USER = process.env.DB_USER || 'postgres';
+const DB_PASSWORD = process.env.DB_PASSWORD || 'sql';
+const DB_HOST = process.env.DB_HOST || 'localhost';
+const DB_PORT = process.env.DB_PORT || 5432;
+const DB_DATABASE = process.env.DB_DATABASE || 'dbcocktail';
+const SQL_FILE_PATH = './dblococktail.sql'; // Chemin vers votre fichier SQL
+
+// Connexion au serveur PostgreSQL
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres', // La base par défaut pour démarrer
-  password: 'root', // Remplacez par votre mot de passe
-  port: 5432,
+  user: DB_USER,
+  host: DB_HOST,
+  password: DB_PASSWORD,
+  port: DB_PORT,
+  database: 'postgres', // Connexion initiale à la base "postgres"
 });
 
-const initScript = fs.readFileSync(path.join(__dirname, 'dblococktail.sql')).toString();
-
-(async () => {
+async function initializeDatabase() {
   try {
-    console.log("Connexion à PostgreSQL...");
-    const client = await pool.connect();
+    // Vérifier si la base de données existe déjà
+    console.log(`Vérification de l'existence de la base de données "${DB_DATABASE}"...`);
+    const checkDbQuery = `SELECT 1 FROM pg_database WHERE datname = '${DB_DATABASE}';`;
+    const result = await pool.query(checkDbQuery);
 
-    console.log("Initialisation de la base de données...");
-    await client.query(initScript); // Exécute le fichier SQL pour créer les tables et insérer les données
-    console.log("Base de données initialisée avec succès.");
+    if (result.rows.length > 0) {
+      console.log(`La base de données "${DB_DATABASE}" existe déjà. Aucune action nécessaire.`);
+    } else {
+      // Créer la base de données
+      console.log(`Création de la base de données "${DB_DATABASE}"...`);
+      await pool.query(`CREATE DATABASE ${DB_DATABASE};`);
+      console.log(`Base de données "${DB_DATABASE}" créée avec succès.`);
+    }
 
-    client.release();
+    // Importer le fichier SQL
+    console.log(`Importation du fichier SQL "${SQL_FILE_PATH}" dans la base de données "${DB_DATABASE}"...`);
+    const importCommand = `psql -U ${DB_USER} -d ${DB_DATABASE} -f "${SQL_FILE_PATH}"`;
+    const { stdout, stderr } = await execAsync(importCommand);
+
+    console.log(stdout);
+    if (stderr) console.error('stderr :', stderr);
+
+    console.log('Importation des données terminée avec succès.');
   } catch (error) {
-    console.error("Erreur lors de l'initialisation de la base de données :", error);
+    console.error('Erreur lors de l\'initialisation de la base de données :', error.message);
   } finally {
-    pool.end();
+    // Fermer la connexion à PostgreSQL
+    await pool.end();
+    console.log('Connexion au serveur PostgreSQL fermée.');
   }
-})();
+}
+
+// Exécuter le script
+initializeDatabase();
