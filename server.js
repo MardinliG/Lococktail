@@ -55,6 +55,23 @@ app.post('/api/products', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de l’ajout du produit.' });
     }
 });
+app.delete('/api/products/:id', async (req, res) => {
+    const { id } = req.params;
+    console.log(`🗑️ Tentative de suppression du produit ID: ${id}`);
+
+    try {
+        const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: "Produit non trouvé" });
+        }
+
+        res.json({ message: "Produit supprimé avec succès", deletedProduct: result.rows[0] });
+    } catch (error) {
+        console.error("❌ Erreur lors de la suppression du produit :", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+});
 
 // Lancer le serveur
 app.listen(PORT, () => {
