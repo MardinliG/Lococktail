@@ -13,7 +13,7 @@ const HomePage = () => {
             </div>
 
             <div className="hidden md:flex space-x-8">
-              <Link to="/" className="text-indigo-800 font-medium hover:text-indigo-600">
+              <Link to="/register" className="text-indigo-800 font-medium hover:text-indigo-600">
                 Accueil
               </Link>
               <Link to="/products" className="text-indigo-800 font-medium hover:text-indigo-600">

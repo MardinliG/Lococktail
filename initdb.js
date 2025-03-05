@@ -13,11 +13,11 @@ const pool = new Pool({
   }
 });
 
-async function createTable() {
+async function createTables() {
   try {
-    console.log("🔍 Vérification et création de la table 'products' si nécessaire...");
+    console.log("🔍 Vérification et création des tables 'products' et 'users' si nécessaire...");
 
-    const query = `
+    const productsQuery = `
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -27,10 +27,24 @@ async function createTable() {
       );
     `;
 
-    await pool.query(query);
+    const usersQuery = `
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    await pool.query(productsQuery);
     console.log("✅ Table 'products' prête !");
+
+    await pool.query(usersQuery);
+    console.log("✅ Table 'users' prête !");
+
   } catch (error) {
-    console.error("❌ Erreur lors de la création de la table :", error.message);
+    console.error("❌ Erreur lors de la création des tables :", error.message);
   } finally {
     await pool.end(); // Ferme la connexion après l'exécution
     console.log("🔌 Connexion PostgreSQL fermée.");
@@ -38,4 +52,4 @@ async function createTable() {
 }
 
 // Exécuter le script
-createTable();
+createTables();

@@ -14,7 +14,7 @@ app.use(express.json());
 
 // Configuration de la connexion à PostgreSQL
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 
+    connectionString: process.env.DATABASE_URL ||
         "postgresql://postgres:MhvcwXmKiEhZBSLsYeidywHbTYgSjFzR@interchange.proxy.rlwy.net:16547/railway",
     ssl: {
         rejectUnauthorized: false, // Utile pour Railway si besoin
@@ -70,6 +70,24 @@ app.delete('/api/products/:id', async (req, res) => {
     } catch (error) {
         console.error("❌ Erreur lors de la suppression du produit :", error);
         res.status(500).json({ message: "Erreur serveur" });
+    }
+});
+
+app.post('/api/register', async (req, res) => {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+        return res.status(400).json({ error: 'Name, email, and password are required.' });
+    }
+
+    try {
+        const result = await pool.query(
+            'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
+            [name, email, password]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Erreur lors de l’enregistrement de l’utilisateur.' });
     }
 });
 
