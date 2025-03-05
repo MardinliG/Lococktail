@@ -14,12 +14,16 @@ app.use(express.json());
 
 // Configuration de la connexion à PostgreSQL
 const pool = new Pool({
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'root',
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    database: process.env.DB_DATABASE || 'dbcocktail',
+    connectionString: process.env.DATABASE_URL || 
+        "postgresql://postgres:MhvcwXmKiEhZBSLsYeidywHbTYgSjFzR@interchange.proxy.rlwy.net:16547/railway",
+    ssl: {
+        rejectUnauthorized: false, // Utile pour Railway si besoin
+    }
 });
+pool.connect()
+    .then(() => console.log("✅ Connecté à PostgreSQL sur Railway"))
+    .catch(err => console.error("❌ Erreur de connexion :", err));
+
 
 // Route pour récupérer les produits
 app.get('/api/products', async (req, res) => {
